@@ -15,7 +15,7 @@ from tortoise.utils import QueryAsyncIterator
 class AwaitableQuery:
     __slots__ = ('_joined_tables', 'query', 'model', '_db')
 
-    def __init__(self, model, db: Optional[BaseDBAsyncClient]) -> None:
+    def __init__(self, model) -> None:
         self._joined_tables = []  # type: List[Table]
         self.model = model
         self.query = model._meta.basequery  # type: Query
@@ -94,7 +94,7 @@ class QuerySet(AwaitableQuery):
                  '_annotations', '_having', '_custom_filters')
 
     def __init__(self, model) -> None:
-        super().__init__(model, None)
+        super().__init__(model)
         self.fields = model._meta.db_fields
 
         self._prefetch_map = {}  # type: Dict[str, Set[str]]
@@ -454,7 +454,7 @@ class UpdateQuery(AwaitableQuery):
     __slots__ = ('update_kwargs', 'q_objects', 'annotations', 'custom_filters')
 
     def __init__(self, model, update_kwargs, db, q_objects, annotations, custom_filters) -> None:
-        super().__init__(model, db)
+        super().__init__(model)
         self.update_kwargs = update_kwargs
         self.q_objects = q_objects
         self.annotations = annotations
@@ -474,7 +474,7 @@ class UpdateQuery(AwaitableQuery):
         for key, value in self.update_kwargs.items():
             field_object = self.model._meta.fields_map.get(key)
             if not field_object:
-                raise FieldError('Unknown keyword argument {} for model {}'.format(key, model))
+                raise FieldError('Unknown keyword argument {} for model {}'.format(key, self.model))
             if field_object.generated:
                 raise IntegrityError('Field {} is generated and can not be updated')
             if isinstance(field_object, fields.ForeignKeyField):
@@ -492,7 +492,7 @@ class DeleteQuery(AwaitableQuery):
     __slots__ = ('q_objects', 'annotations', 'custom_filters')
 
     def __init__(self, model, db, q_objects, annotations, custom_filters) -> None:
-        super().__init__(model, db)
+        super().__init__(model)
         self.q_objects = q_objects
         self.annotations = annotations
         self.custom_filters = custom_filters
@@ -516,7 +516,7 @@ class CountQuery(AwaitableQuery):
     __slots__ = ('q_objects', 'annotations', 'custom_filters')
 
     def __init__(self, model, db, q_objects, annotations, custom_filters) -> None:
-        super().__init__(model, db)
+        super().__init__(model)
         self.q_objects = q_objects
         self.annotations = annotations
         self.custom_filters = custom_filters
@@ -631,7 +631,7 @@ class ValuesListQuery(FieldSelectQuery):
 
     def __init__(self, model, db, q_objects, fields_for_select_list, limit, offset,
                  distinct, orderings, flat, annotations, custom_filters) -> None:
-        super().__init__(model, db)
+        super().__init__(model)
         if flat and (len(fields_for_select_list) != 1):
             raise TypeError('You can flat value_list only if contains one field')
 
@@ -688,7 +688,7 @@ class ValuesQuery(FieldSelectQuery):
 
     def __init__(self, model, db, q_objects, fields_for_select, limit, offset, distinct, orderings,
                  annotations, custom_filters) -> None:
-        super().__init__(model, db)
+        super().__init__(model)
         self.fields_for_select = fields_for_select
         self.limit = limit
         self.offset = offset
