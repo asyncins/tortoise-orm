@@ -75,4 +75,24 @@ class TestGenerateSchema(test.SimpleTestCase):
     async def test_cyclic(self):
         with self.assertRaisesRegex(ConfigurationError,
                                     "Can't create schema due to cyclic fk references"):
-            await self.init_for("tortoise.tests.testmodels_cyclic")
+            await self.init_for("tortoise.tests.models_cyclic")
+
+    async def test_fk_bad_model_name(self):
+        with self.assertRaisesRegex(ConfigurationError,
+                                    'Foreign key accepts model name in format "app.Model"'):
+            await self.init_for("tortoise.tests.models_fk_1")
+
+    async def test_fk_bad_on_delete(self):
+        with self.assertRaisesRegex(ConfigurationError,
+                                    'on_delete can only be CASCADE, RESTRICT or SET_NULL'):
+            await self.init_for("tortoise.tests.models_fk_2")
+
+    async def test_fk_bad_null(self):
+        with self.assertRaisesRegex(ConfigurationError,
+                                    'If on_delete is SET_NULL, then field must have null=True set'):
+            await self.init_for("tortoise.tests.models_fk_3")
+
+    async def test_m2m_bad_model_name(self):
+        with self.assertRaisesRegex(ConfigurationError,
+                                    'Foreign key accepts model name in format "app.Model"'):
+            await self.init_for("tortoise.tests.models_m2m_1")
